@@ -1,0 +1,82 @@
+﻿@{
+    ViewBag.Title = "Fileのアップロード";
+}
+
+<h2>ファイルのアップロード</h2>
+
+@using (Html.BeginForm("Upload", "Upload", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+<div class="row">
+    <div class="col-md-6">
+        <input type="file" name="file" />
+    </div>
+    <div class="col-md-6">
+            <input type="submit" value="upload" />
+    </div>
+ </div>
+ }
+
+<div>
+    <video id="videoElement" autoplay></video>
+
+    <button id="captureButton">画像をキャプチャ</button>
+    <canvas id="canvasElement" width="640" height="480"></canvas>
+    <form id="sendB64" method="POST" action="/Upload/Base64">
+        <button id="sendButton">PNG画像を送信</button>
+        <button id="sendBitMap">BITMAP画像を送信</button>
+        <input type="hidden" name="b64img" id="b64img" value="" />
+    </form>
+
+    <script>
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(function (stream) {
+                    var videoElement = document.getElementById('videoElement');
+                    // ビデオ要素にストリームをセット
+                    videoElement.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.error('カメラのアクセスに失敗しました', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function (event) {
+            startVideo();
+            // キャプチャボタンを取得
+            var captureButton = document.getElementById('captureButton');
+            // キャプチャボタンがクリックされた時の処理
+            captureButton.addEventListener('click', function () {
+                // canvas要素を取得
+                var canvasElement = document.getElementById('canvasElement');
+                var videoElement = document.getElementById('videoElement');
+
+                // canvasにビデオのフレームを描画
+                var context = canvasElement.getContext('2d');
+                context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            });
+        });
+
+        var sendImgButton = document.getElementById('sendButton');
+        sendImgButton.addEventListener('click', function () {
+            canvas = document.getElementById('canvasElement');
+            var png64 = canvas.toDataURL('image/png'); // png変換
+            document.getElementById('b64img').setAttribute('value', png64);
+            document.getElementById('sendB64').submit();
+        }
+        );
+
+        var sendBitMap = document.getElementById('sendBitMap');
+        sendBitMap.addEventListener('click', function(){
+            canvas = document.getElementById('canvasElement');
+            var bitmap64 = canvas.toDataURL("image/png");
+            document.getElementById('b64img').setAttribute('value', bitmap64);
+            document.getElementById('sendB64').action = "/Upload/BitMap";
+            document.getElementById('sendB64').submit();
+        });
+        
+
+
+    </script>
+</div>
+
+
